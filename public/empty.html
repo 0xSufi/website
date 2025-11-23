@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+(function() {
+  // Helper to safely serialize arguments
+  function serializeArgs(args) {
+    return Array.from(args).map(arg => {
+      try {
+        if (arg instanceof Error) {
+          return { type: 'Error', message: arg.message, stack: arg.stack };
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          return JSON.parse(JSON.stringify(arg));
+        }
+        return arg;
+      } catch (e) {
+        return String(arg);
+      }
+    });
+  }
+
+  // Override console methods
+  const originalConsole = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    info: console.info,
+    debug: console.debug
+  };
+
+  ['log', 'error', 'warn', 'info', 'debug'].forEach(level => {
+    console[level] = function(...args) {
+      originalConsole[level].apply(console, args);
+      try {
+        window.parent.postMessage({
+          type: 'console',
+          level: level,
+          args: serializeArgs(args),
+          timestamp: new Date().toISOString()
+        }, '*');
+      } catch (e) {
+        originalConsole.error('Failed to send console message:', e);
+      }
+    };
+  });
+
+  // Capture runtime errors
+  window.onerror = function(message, source, lineno, colno, error) {
+    window.parent.postMessage({
+      type: 'error',
+      message: message,
+      source: source,
+      lineno: lineno,
+      colno: colno,
+      stack: error?.stack,
+      timestamp: new Date().toISOString()
+    }, '*');
+    return false;
+  };
+
+  // Capture unhandled promise rejections
+  window.addEventListener('unhandledrejection', function(event) {
+    window.parent.postMessage({
+      type: 'rejection',
+      reason: event.reason instanceof Error ? {
+        message: event.reason.message,
+        stack: event.reason.stack
+      } : String(event.reason),
+      timestamp: new Date().toISOString()
+    }, '*');
+  });
+
+  // Capture network requests (fetch)
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0];
+    const startTime = Date.now();
+
+    return originalFetch.apply(this, args)
+      .then(response => {
+        window.parent.postMessage({
+          type: 'network',
+          method: 'fetch',
+          url: String(url),
+          status: response.status,
+          duration: Date.now() - startTime,
+          timestamp: new Date().toISOString()
+        }, '*');
+        return response;
+      })
+      .catch(error => {
+        window.parent.postMessage({
+          type: 'network',
+          method: 'fetch',
+          url: String(url),
+          error: error.message,
+          duration: Date.now() - startTime,
+          timestamp: new Date().toISOString()
+        }, '*');
+        throw error;
+      });
+  };
+
+  // Track URL navigation
+  function sendUrlUpdate() {
+    window.parent.postMessage({
+      type: 'navigation',
+      url: window.location.href,
+      timestamp: new Date().toISOString()
+    }, '*');
+  }
+
+  // Send initial URL
+  sendUrlUpdate();
+
+  // Intercept pushState and replaceState for SPA navigation
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+
+  history.pushState = function(...args) {
+    originalPushState.apply(this, args);
+    sendUrlUpdate();
+  };
+
+  history.replaceState = function(...args) {
+    originalReplaceState.apply(this, args);
+    sendUrlUpdate();
+  };
+
+  // Track popstate (back/forward navigation)
+  window.addEventListener('popstate', sendUrlUpdate);
+
+  // Track hashchange
+  window.addEventListener('hashchange', sendUrlUpdate);
+
+  // Listen for screenshot requests from parent
+  window.addEventListener('message', async function(event) {
+    if (event.data && event.data.type === 'request_screenshot') {
+      const { x, y, width, height, requestId } = event.data;
+
+      try {
+        // Use dom-to-image-more (lighter than html2canvas)
+        if (!window.domtoimage) {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/dom-to-image-more@2.8.0/dist/dom-to-image-more.min.js';
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+            setTimeout(resolve, 1000); // Fallback timeout
+          });
+        }
+
+        // Capture the body as PNG
+        const dataUrl = await window.domtoimage.toPng(document.body, {
+          quality: 0.8,
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+
+        // Create image from data URL
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise(resolve => { img.onload = resolve; });
+
+        // Crop to the requested region
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+
+        // Convert to data URL
+        const croppedDataUrl = canvas.toDataURL('image/png');
+
+        // Send back to parent
+        window.parent.postMessage({
+          type: 'screenshot_response',
+          requestId: requestId,
+          dataUrl: croppedDataUrl
+        }, '*');
+      } catch (error) {
+        console.error('Screenshot error:', error);
+        window.parent.postMessage({
+          type: 'screenshot_error',
+          requestId: requestId,
+          error: error.message || 'Screenshot failed'
+        }, '*');
+      }
+    }
+  });
+
+  // ========================================
+  // DOM INSPECTOR
+  // ========================================
+
+  let inspectorEnabled = false;
+  let highlightOverlay = null;
+
+  // Create highlight overlay for element inspection
+  function createHighlightOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = '__dom_inspector_highlight__';
+    overlay.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      border: 2px solid #a855f7;
+      background: rgba(168, 85, 247, 0.1);
+      z-index: 2147483647;
+      display: none;
+      box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.5);
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  // Generate XPath for element (always use full path, no ID shortcuts)
+  function getXPath(element) {
+    if (!element || element === document.documentElement) return '/html';
+    if (element === document.body) return '/html/body';
+
+    let ix = 0;
+    const siblings = element.parentNode?.children || [];
+    for (let i = 0; i < siblings.length; i++) {
+      const sibling = siblings[i];
+      if (sibling === element) {
+        const parentPath = getXPath(element.parentNode);
+        const tagName = element.tagName.toLowerCase();
+        return `${parentPath}/${tagName}[${ix + 1}]`;
+      }
+      if (sibling.tagName === element.tagName) ix++;
+    }
+    return '';
+  }
+
+  // Get element by XPath
+  function getElementByXPath(xpath) {
+    try {
+      const result = document.evaluate(
+        xpath,
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+      );
+      return result.singleNodeValue;
+    } catch (e) {
+      console.error('Invalid XPath:', xpath, e);
+      return null;
+    }
+  }
+
+  // Serialize element with computed styles
+  function serializeElement(element) {
+    if (!element) return null;
+
+    const computed = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+
+    return {
+      tagName: element.tagName,
+      id: element.id || '',
+      className: element.className || '',
+      textContent: element.textContent?.substring(0, 100) || '',
+      attributes: Array.from(element.attributes).map(a => ({
+        name: a.name,
+        value: a.value
+      })),
+      computedStyles: {
+        // Layout
+        display: computed.display,
+        position: computed.position,
+        top: computed.top,
+        right: computed.right,
+        bottom: computed.bottom,
+        left: computed.left,
+        width: computed.width,
+        height: computed.height,
+        // Box model
+        margin: computed.margin,
+        marginTop: computed.marginTop,
+        marginRight: computed.marginRight,
+        marginBottom: computed.marginBottom,
+        marginLeft: computed.marginLeft,
+        padding: computed.padding,
+        paddingTop: computed.paddingTop,
+        paddingRight: computed.paddingRight,
+        paddingBottom: computed.paddingBottom,
+        paddingLeft: computed.paddingLeft,
+        // Border
+        border: computed.border,
+        borderRadius: computed.borderRadius,
+        // Typography
+        color: computed.color,
+        fontSize: computed.fontSize,
+        fontWeight: computed.fontWeight,
+        fontFamily: computed.fontFamily,
+        lineHeight: computed.lineHeight,
+        textAlign: computed.textAlign,
+        // Background
+        backgroundColor: computed.backgroundColor,
+        backgroundImage: computed.backgroundImage,
+        // Flexbox
+        flexDirection: computed.flexDirection,
+        justifyContent: computed.justifyContent,
+        alignItems: computed.alignItems,
+        gap: computed.gap,
+        // Grid
+        gridTemplateColumns: computed.gridTemplateColumns,
+        gridTemplateRows: computed.gridTemplateRows,
+        // Visibility
+        opacity: computed.opacity,
+        visibility: computed.visibility,
+        zIndex: computed.zIndex
+      },
+      boundingRect: {
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      xpath: getXPath(element)
+    };
+  }
+
+  // Serialize DOM tree (with depth limit to prevent performance issues)
+  function serializeTree(element, maxDepth = 5, currentDepth = 0) {
+    if (!element || currentDepth >= maxDepth) return null;
+
+    const children = Array.from(element.children);
+
+    return {
+      tagName: element.tagName,
+      id: element.id || '',
+      className: element.className || '',
+      childCount: children.length,
+      xpath: getXPath(element),
+      hasChildren: children.length > 0,
+      children: children.slice(0, 100).map(child =>
+        serializeTree(child, maxDepth, currentDepth + 1)
+      ).filter(Boolean)
+    };
+  }
+
+  // Highlight element
+  function highlightElement(element) {
+    if (!element || !highlightOverlay) return;
+
+    const rect = element.getBoundingClientRect();
+    highlightOverlay.style.top = rect.top + window.scrollY + 'px';
+    highlightOverlay.style.left = rect.left + window.scrollX + 'px';
+    highlightOverlay.style.width = rect.width + 'px';
+    highlightOverlay.style.height = rect.height + 'px';
+    highlightOverlay.style.display = 'block';
+  }
+
+  // Clear highlight
+  function clearHighlight() {
+    if (highlightOverlay) {
+      highlightOverlay.style.display = 'none';
+    }
+  }
+
+  // Click-to-inspect handler
+  function handleInspectorClick(e) {
+    if (!inspectorEnabled) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const element = e.target;
+
+    window.parent.postMessage({
+      type: 'dom_element_clicked',
+      details: serializeElement(element),
+      timestamp: new Date().toISOString()
+    }, '*');
+  }
+
+  // Listen for DOM inspector commands
+  const originalMessageHandler = window.addEventListener('message', async function(event) {
+    if (!event.data || !event.data.type) return;
+
+    switch (event.data.type) {
+      case 'dom_enable_inspector':
+        inspectorEnabled = true;
+        if (!highlightOverlay) {
+          highlightOverlay = createHighlightOverlay();
+        }
+        document.body.style.cursor = 'crosshair';
+        window.parent.postMessage({
+          type: 'dom_inspector_enabled',
+          timestamp: new Date().toISOString()
+        }, '*');
+        break;
+
+      case 'dom_disable_inspector':
+        inspectorEnabled = false;
+        document.body.style.cursor = '';
+        clearHighlight();
+        window.parent.postMessage({
+          type: 'dom_inspector_disabled',
+          timestamp: new Date().toISOString()
+        }, '*');
+        break;
+
+      case 'dom_get_tree':
+        const tree = serializeTree(document.body, event.data.maxDepth || 5);
+        window.parent.postMessage({
+          type: 'dom_tree',
+          tree: tree,
+          timestamp: new Date().toISOString()
+        }, '*');
+        break;
+
+      case 'dom_inspect_element':
+        const inspectElem = getElementByXPath(event.data.xpath);
+        if (inspectElem) {
+          window.parent.postMessage({
+            type: 'dom_element_details',
+            details: serializeElement(inspectElem),
+            timestamp: new Date().toISOString()
+          }, '*');
+        }
+        break;
+
+      case 'dom_highlight_element':
+        const highlightElem = getElementByXPath(event.data.xpath);
+        if (highlightElem) {
+          highlightElement(highlightElem);
+        }
+        break;
+
+      case 'dom_clear_highlight':
+        clearHighlight();
+        break;
+
+      case 'dom_expand_element':
+        const expandElem = getElementByXPath(event.data.xpath);
+        if (expandElem) {
+          const subtree = serializeTree(expandElem, event.data.maxDepth || 3);
+          window.parent.postMessage({
+            type: 'dom_element_children',
+            xpath: event.data.xpath,
+            children: subtree,
+            timestamp: new Date().toISOString()
+          }, '*');
+        }
+        break;
+
+      case 'dom_get_html':
+        const htmlElem = getElementByXPath(event.data.xpath);
+        if (htmlElem) {
+          window.parent.postMessage({
+            type: 'dom_element_html',
+            xpath: event.data.xpath,
+            html: htmlElem.outerHTML,
+            timestamp: new Date().toISOString()
+          }, '*');
+        } else {
+          window.parent.postMessage({
+            type: 'dom_element_html',
+            xpath: event.data.xpath,
+            html: null,
+            error: 'Element not found',
+            timestamp: new Date().toISOString()
+          }, '*');
+        }
+        break;
+    }
+  });
+
+  // Add click handler for inspector
+  document.addEventListener('click', handleInspectorClick, true);
+
+  // ========================================
+  // END DOM INSPECTOR
+  // ========================================
+
+  // Send ready message
+  window.parent.postMessage({
+    type: 'ready',
+    timestamp: new Date().toISOString()
+  }, '*');
+})();
+</script>
+
+    <title>Empty Test</title>
+</head>
+<body>
+    <h1>Empty HTML - No JavaScript</h1>
+    <p>Check Network tab - should be 0 RPC requests</p>
+</body>
+</html>

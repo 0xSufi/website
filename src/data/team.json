@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "name": "Int3rn",
+    "role": "Founder & CEO",
+    "bio": "Blockchain & Tech Enthusiast. Entrepreneur at heart",
+    "avatar": "intern",
+    "twitter": "https://twitter.com",
+    "linkedin": "https://linkedin.com",
+    "github": "https://github.com"
+  },
+  {
+    "id": "2",
+    "name": "Team Member 2",
+    "role": "CTO",
+    "bio": "Full-stack engineer specializing in smart contract development and protocol design.",
+    "avatar": "/assets/images/team2.png",
+    "twitter": "https://twitter.com",
+    "github": "https://github.com"
+  },
+  {
+    "id": "3",
+    "name": "Team Member 3",
+    "role": "Head of Product",
+    "bio": "Product strategist focused on creating seamless user experiences in Web3 applications.",
+    "avatar": "/assets/images/team3.png",
+    "twitter": "https://twitter.com",
+    "linkedin": "https://linkedin.com"
+  },
+  {
+    "id": "4",
+    "name": "0xSufi",
+    "role": "Lead Developer",
+    "bio": "Software architect with expertise in distributed systems and blockchain infrastructure.",
+    "avatar": "/assets/images/team4.png",
+    "github": "https://github.com"
+  }
+]

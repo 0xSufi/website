@@ -1,0 +1,56 @@
+[
+  {
+    "id": "1",
+    "title": "Dyspel",
+    "description": "Next gen IDE for AI assisted development",
+    "industry": "AI",
+    "status": "In Development",
+    "logoUrl": "https://i.imgur.com/2voHhJB.png",
+    "website": "",
+    "twitter": "",
+    "investors": ""
+  },
+  {
+    "id": "2",
+    "title": "Noma Protocol",
+    "description": "Automated tokenomics and permission-less algorithmic market making on the EVM",
+    "industry": "DeFi",
+    "status": "Active",
+    "logoUrl": "https://avatars.githubusercontent.com/u/164035807?s=200&v=4",
+    "website": "https://noma.money",
+    "twitter": "https://x.com/noaborsa",
+    "github": "https://github.com/noma-protocol",
+    "investors": {
+      "enabled": true,
+      "type": "SAFT",
+      "arrangement": "Token",
+      "description": "Early stage investment opportunity with token allocation at TGE."
+    },
+    "blockchains": ["Ethereum", "Monad"]
+  },
+  {
+    "id": "3",
+    "title": "MUTE",
+    "description": "Decentralized platform for video distribution with integrated monetization",
+    "industry": "Media",
+    "status": "In Development",
+    "logoUrl": "https://avatars.githubusercontent.com/u/239677419?s=200&v=4",
+    "website": "",
+    "twitter": "",
+    "github": "https://github.com/MuteAI",
+    "investors": ""
+  },
+  {
+    "id": "4",
+    "title": "Ki2",
+    "description": "Cryptographically veriable assets on Bitcoin with military grade privacy",
+    "industry": "Infra",
+    "status": "In Development",
+    "logoUrl": "https://avatars.githubusercontent.com/u/221645552?s=200&v=4",
+    "website": "",
+    "twitter": "",
+    "investors": "",
+    "github": "https://github.com/ki2-xyz",
+    "blockchains": ["Bitcoin"]
+  }
+]
