@@ -48,8 +48,9 @@ interface Project {
   id: string;
   title: string;
   description: string;
-  industry: string;
+  industries: string[];
   status: string;
+  stage?: string; // "Pre-Seed", "Seed", "Series A", "Series B", "Series C"
   logoUrl?: string;
   website?: string;
   twitter?: string;
@@ -86,7 +87,7 @@ const Portfolio: React.FC = () => {
 
   // Get unique industries and statuses for filters
   const industries = useMemo(() => {
-    const unique = [...new Set(projects.map(p => p.industry))];
+    const unique = [...new Set(projects.flatMap(p => p.industries))];
     return ["all", ...unique];
   }, [projects]);
 
@@ -105,13 +106,13 @@ const Portfolio: React.FC = () => {
         (project) =>
           project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          project.industry?.toLowerCase().includes(searchQuery.toLowerCase())
+          project.industries?.some(ind => ind.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
     // Apply industry filter
     if (filterIndustry !== "all") {
-      filtered = filtered.filter(p => p.industry === filterIndustry);
+      filtered = filtered.filter(p => p.industries.includes(filterIndustry));
     }
 
     // Apply status filter
@@ -308,26 +309,27 @@ const Portfolio: React.FC = () => {
 
                   {/* Project Info */}
                   <Box p={3} h="210px" display="flex" flexDirection="column">
-                    <HStack justify="space-between" mb={1.5}>
-                      <Box flex={1} minW={0}>
-                        <Heading size="sm" color="white" noOfLines={1} fontSize="md">
-                          {project.title}
-                        </Heading>
-                      </Box>
-                      <Box flexShrink={0}>
-                        <Text
-                          fontSize="2xs"
-                          fontWeight="600"
-                          color="#4ade80"
-                          bg="rgba(74, 222, 128, 0.1)"
-                          px={1.5}
-                          py={0.5}
-                          borderRadius="sm"
-                        >
-                          {project.industry}
-                        </Text>
-                      </Box>
-                    </HStack>
+                    <Box mb={1.5}>
+                      <Heading size="sm" color="white" noOfLines={1} fontSize="md" mb={1}>
+                        {project.title}
+                      </Heading>
+                      <HStack gap={1} flexWrap="wrap">
+                        {project.industries.map((industry) => (
+                          <Text
+                            key={industry}
+                            fontSize="2xs"
+                            fontWeight="600"
+                            color="#4ade80"
+                            bg="rgba(74, 222, 128, 0.1)"
+                            px={1.5}
+                            py={0.5}
+                            borderRadius="sm"
+                          >
+                            {industry}
+                          </Text>
+                        ))}
+                      </HStack>
+                    </Box>
 
                     <Box mb={2} flex={1} pb={2}>
                       <Text fontSize="xs" color="#888" noOfLines={3}>
@@ -506,19 +508,22 @@ const Portfolio: React.FC = () => {
                   />
                 </Box>
 
-                {/* Industry & Status */}
-                <HStack justify="center" gap={2}>
-                  <Badge
-                    bg="rgba(74, 222, 128, 0.1)"
-                    color="#4ade80"
-                    border="1px solid #4ade80"
-                    px={2}
-                    py={1}
-                    borderRadius="sm"
-                    fontSize="xs"
-                  >
-                    {selectedProject.industry}
-                  </Badge>
+                {/* Industries & Status */}
+                <HStack justify="center" gap={2} flexWrap="wrap">
+                  {selectedProject.industries.map((industry) => (
+                    <Badge
+                      key={industry}
+                      bg="rgba(74, 222, 128, 0.1)"
+                      color="#4ade80"
+                      border="1px solid #4ade80"
+                      px={2}
+                      py={1}
+                      borderRadius="sm"
+                      fontSize="xs"
+                    >
+                      {industry}
+                    </Badge>
+                  ))}
                   <Badge
                     bg={getStatusColor(selectedProject.status).bg}
                     color={getStatusColor(selectedProject.status).color}
@@ -612,6 +617,22 @@ const Portfolio: React.FC = () => {
                 {/* Investment Details */}
                 <Box bg="rgba(167, 139, 250, 0.1)" p={4} borderRadius="md" border="1px solid rgba(167, 139, 250, 0.3)">
                   <VStack align="stretch" gap={3}>
+                    {investorProject.stage && (
+                      <HStack justify="space-between">
+                        <Text color="#888" fontSize="sm">Stage</Text>
+                        <Badge
+                          bg="rgba(56, 189, 248, 0.2)"
+                          color="#38bdf8"
+                          px={2}
+                          py={1}
+                          borderRadius="sm"
+                          fontSize="xs"
+                          fontWeight="600"
+                        >
+                          {investorProject.stage}
+                        </Badge>
+                      </HStack>
+                    )}
                     <HStack justify="space-between">
                       <Text color="#888" fontSize="sm">Agreement Type</Text>
                       <Badge

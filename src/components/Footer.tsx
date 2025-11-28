@@ -21,11 +21,11 @@ const Footer: React.FC = () => {
           gap={isMobile ? 4 : 0}
         >
           <Text color="#888" fontSize="sm">
-            © 2025/2026 Fundamental Labs. All rights reserved.
+            © 2025/2026 Fundamental Labs. 
           </Text>
           <Box>
             <HStack gap={4}>
-              <Link
+              {/* <Link
                 href="https://noma.money"
                 color="#888"
                 fontSize="sm"
@@ -40,7 +40,13 @@ const Footer: React.FC = () => {
                 _hover={{ color: "#4ade80" }}
               >
                 Docs
-              </Link>
+              </Link> */}
+                <Text color="#888" fontSize="sm">
+                  Contact: 
+                  <Link href="mailto:invest@flabs.cc" style={{ color: "#4ade80", visited: { color: "#4ade80" } }}>
+                   &nbsp; invest@flabs.cc
+                  </Link> 
+                </Text>              
             </HStack>
           </Box>
         </HStack>

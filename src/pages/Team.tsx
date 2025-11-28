@@ -10,7 +10,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 import { isMobile } from "react-device-detect";
-import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
+import { FaXTwitter, FaLinkedin, FaGithub, FaEnvelope } from "react-icons/fa6";
 import placeholderAvatar from "../assets/images/question_white.svg";
 import teamData from "../data/team.json";
 
@@ -43,6 +43,7 @@ interface TeamMember {
   twitter?: string;
   linkedin?: string;
   github?: string;
+  email?: string;
 }
 
 const teamMembers: TeamMember[] = teamData;
@@ -173,6 +174,16 @@ const Team: React.FC = () => {
                         transition="all 0.2s"
                       >
                         <FaGithub size={14} color="#4ade80" />
+                      </Box>
+                    )}
+                    {member.email && (
+                      <Box
+                        as="a"
+                        href={`mailto:${member.email}`}
+                        opacity={1}
+                        transition="all 0.2s"
+                      >
+                        <FaEnvelope size={14} color="#4ade80" />
                       </Box>
                     )}
                   </HStack>
