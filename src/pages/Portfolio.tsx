@@ -188,7 +188,8 @@ const Portfolio: React.FC = () => {
             <VStack align="stretch" gap={2}>
               {/* Industry filters */}
               <HStack gap={2} flexWrap="wrap">
-                <Text fontSize="sm" color="#888" mr={2}>Industry:</Text>
+                <Box><Text fontSize="sm" color="#888" mr={2}>Industry:</Text></Box>
+                <Box>
                 {industries.map((industry) => (
                   <Button
                     key={industry}
@@ -204,7 +205,8 @@ const Portfolio: React.FC = () => {
                   >
                     {industry === "all" ? "All" : industry}
                   </Button>
-                ))}
+                ))}                  
+                </Box>
               </HStack>
 
               {/* Status filters */}
@@ -315,18 +317,19 @@ const Portfolio: React.FC = () => {
                       </Heading>
                       <HStack gap={1} flexWrap="wrap">
                         {project.industries.map((industry) => (
-                          <Text
-                            key={industry}
-                            fontSize="2xs"
-                            fontWeight="600"
-                            color="#4ade80"
-                            bg="rgba(74, 222, 128, 0.1)"
-                            px={1.5}
-                            py={0.5}
-                            borderRadius="sm"
-                          >
-                            {industry}
-                          </Text>
+                          <Box key={industry}>
+                            <Text
+                              fontSize="2xs"
+                              fontWeight="600"
+                              color="#4ade80"
+                              bg="rgba(74, 222, 128, 0.1)"
+                              px={1.5}
+                              py={0.5}
+                              borderRadius="sm"
+                            >
+                              {industry}
+                            </Text>
+                          </Box>
                         ))}
                       </HStack>
                     </Box>
@@ -509,8 +512,11 @@ const Portfolio: React.FC = () => {
                 </Box>
 
                 {/* Industries & Status */}
+                <Box>
                 <HStack justify="center" gap={2} flexWrap="wrap">
+                  <Box>
                   {selectedProject.industries.map((industry) => (
+                    <Box>
                     <Badge
                       key={industry}
                       bg="rgba(74, 222, 128, 0.1)"
@@ -522,8 +528,11 @@ const Portfolio: React.FC = () => {
                       fontSize="xs"
                     >
                       {industry}
-                    </Badge>
-                  ))}
+                    </Badge>                      
+                      </Box>
+                  ))}                    
+                  </Box>
+                  <Box>
                   <Badge
                     bg={getStatusColor(selectedProject.status).bg}
                     color={getStatusColor(selectedProject.status).color}
@@ -535,8 +544,10 @@ const Portfolio: React.FC = () => {
                     fontSize="xs"
                   >
                     {selectedProject.status}
-                  </Badge>
-                </HStack>
+                  </Badge>                    
+                  </Box>
+                </HStack>                  
+                </Box>
 
                 {/* Description */}
                 <Box>
