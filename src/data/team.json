@@ -6,33 +6,31 @@
     "bio": "Blockchain & Tech Enthusiast. Entrepreneur at heart",
     "avatar": "intern",
     "twitter": "https://twitter.com",
-    "linkedin": "https://linkedin.com",
-    "github": "https://github.com"
+    "linkedin": "https://linkedin.com"
   },
   {
     "id": "2",
-    "name": "Team Member 2",
-    "role": "CTO",
-    "bio": "Full-stack engineer specializing in smart contract development and protocol design.",
-    "avatar": "/assets/images/team2.png",
-    "twitter": "https://twitter.com",
-    "github": "https://github.com"
+    "name": "Luishy Artiles",
+    "role": "COO",
+    "avatar": "luishy",
+    "bio": "Analytic mind with problem solving skills and ability to manage even the most disparate team",
+    "twitter": "https://twitter.com"
   },
   {
     "id": "3",
-    "name": "Team Member 3",
-    "role": "Head of Product",
-    "bio": "Product strategist focused on creating seamless user experiences in Web3 applications.",
-    "avatar": "/assets/images/team3.png",
-    "twitter": "https://twitter.com",
-    "linkedin": "https://linkedin.com"
+    "name": "Manuel Alvarez",
+    "role": "CTO",
+    "avatar": "manuel",
+    "bio": "Background in Finance and Economics, interested in cryptocurrency and its ethos. In for the long-run.",
+    "twitter": "https://twitter.com"
   },
   {
     "id": "4",
     "name": "0xSufi",
     "role": "Lead Developer",
-    "bio": "Software architect with expertise in distributed systems and blockchain infrastructure.",
-    "avatar": "/assets/images/team4.png",
-    "github": "https://github.com"
+     "avatar": "sufi",
+    "bio": "Software architect with expertise in cryptography, distributed systems and blockchain infrastructure. EVM slave.",
+    "github": "https://github.com/0xSufi",
+    "twitter": "https://x.com/0xSufist"
   }
 ]

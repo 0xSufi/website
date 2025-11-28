@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
           gap={isMobile ? 4 : 0}
         >
           <Text color="#888" fontSize="sm">
-            © 2024 Noma Protocol. All rights reserved.
+            © 2025/2026 Fundamental Labs. All rights reserved.
           </Text>
           <Box>
             <HStack gap={4}>

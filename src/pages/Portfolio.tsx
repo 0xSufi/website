@@ -413,6 +413,7 @@ const Portfolio: React.FC = () => {
                           cursor="pointer"
                           _hover={{ bg: "rgba(167, 139, 250, 0.3)" }}
                           transition="all 0.2s"
+                          ml="60%"
                         >
                           Investors
                         </Badge>

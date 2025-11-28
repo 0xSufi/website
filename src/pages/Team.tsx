@@ -16,10 +16,16 @@ import teamData from "../data/team.json";
 
 // Import team avatars
 import internAvatar from "../assets/images/intern.jpeg";
+import luishyAvatar from "../assets/images/luishy.jpeg";
+import manuelAvatar from "../assets/images/manuel.jpeg";
+import sufiAvatar from "../assets/images/sufi.jpg";
 
 // Map avatar names to imported images
 const avatarMap: Record<string, string> = {
   "intern": internAvatar,
+  "luishy": luishyAvatar,
+  "manuel": manuelAvatar,
+  "sufi": sufiAvatar
 };
 
 // Helper to get avatar image
@@ -58,7 +64,7 @@ const Team: React.FC = () => {
             Our Team
           </Heading>
           <Text color="#888" fontSize="md">
-            Meet the people building the future of decentralized finance
+            Meet the people building the future of technology landscape in LATAM
           </Text>
         </Box>
 
@@ -83,7 +89,7 @@ const Team: React.FC = () => {
             >
               {/* Profile Picture */}
               <Box
-                h="120px"
+                h="220px"
                 bg="#0a0a0a"
                 display="flex"
                 alignItems="center"
@@ -93,7 +99,7 @@ const Team: React.FC = () => {
                 <Image
                   src={getAvatar(member.avatar)}
                   alt={member.name}
-                  maxH="100px"
+                  maxH="200px"
                   maxW="100px"
                   objectFit="cover"
                   borderRadius="full"
@@ -102,7 +108,7 @@ const Team: React.FC = () => {
               </Box>
 
               {/* Member Info */}
-              <Box p={3} h="180px" display="flex" flexDirection="column">
+              <Box p={3} h="250px" display="flex" flexDirection="column">
                 <Box mb={1.5}>
                   <Heading size="sm" color="white" noOfLines={1} fontSize="md" textAlign="center">
                     {member.name}
@@ -131,7 +137,7 @@ const Team: React.FC = () => {
                 </Box>
 
                 {/* Social Links */}
-                <Box>
+                <Box opacity={1}>
                   <HStack gap={3} justify="center" mt="auto">
                     {member.twitter && (
                       <Box
@@ -139,11 +145,10 @@ const Team: React.FC = () => {
                         href={member.twitter}
                         target="_blank"
                         rel="noopener noreferrer"
-                        color="white"
-                        _hover={{ color: "#4ade80" }}
+                        opacity={1}
                         transition="all 0.2s"
                       >
-                        <FaXTwitter size={14} />
+                        <FaXTwitter size={14} color="#4ade80" />
                       </Box>
                     )}
                     {member.linkedin && (
@@ -152,11 +157,10 @@ const Team: React.FC = () => {
                         href={member.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        color="white"
-                        _hover={{ color: "#4ade80" }}
+                        opacity={1}
                         transition="all 0.2s"
                       >
-                        <FaLinkedin size={14} />
+                        <FaLinkedin size={14} color="#4ade80" />
                       </Box>
                     )}
                     {member.github && (
@@ -165,11 +169,10 @@ const Team: React.FC = () => {
                         href={member.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        color="white"
-                        _hover={{ color: "#4ade80" }}
+                        opacity={1}
                         transition="all 0.2s"
                       >
-                        <FaGithub size={14} />
+                        <FaGithub size={14} color="#4ade80" />
                       </Box>
                     )}
                   </HStack>
