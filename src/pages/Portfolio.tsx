@@ -310,12 +310,12 @@ const Portfolio: React.FC = () => {
                   </Box>
 
                   {/* Project Info */}
-                  <Box p={3} h="210px" display="flex" flexDirection="column">
+                  <Box p={3} h="240px" display="flex" flexDirection="column" >
                     <Box mb={1.5}>
                       <Heading size="sm" color="white" noOfLines={1} fontSize="md" mb={1}>
                         {project.title}
                       </Heading>
-                      <HStack gap={1} flexWrap="wrap">
+                      <HStack gap={1} flexWrap="wrap" mt={2}>
                         {project.industries.map((industry) => (
                           <Box key={industry}>
                             <Text
@@ -334,7 +334,7 @@ const Portfolio: React.FC = () => {
                       </HStack>
                     </Box>
 
-                    <Box mb={2} flex={1} pb={2}>
+                    <Box mb={2} flex={1} pb={2}  mt={2}>
                       <Text fontSize="xs" color="#888" noOfLines={3}>
                         {project.description || "No description available."}
                       </Text>
@@ -343,7 +343,7 @@ const Portfolio: React.FC = () => {
                     {/* Blockchain logos */}
                     {project.blockchains && project.blockchains.length > 0 && (
                       <Box mb={2}>
-                        <HStack gap={1}>
+                        <HStack gap={1} mt={2}>
                           {project.blockchains.map((chain) => (
                             <Image
                               key={chain}
