@@ -17,12 +17,14 @@ import {
   DialogBody,
   DialogCloseTrigger,
   DialogTitle,
+  Link
 } from "@chakra-ui/react";
 import { isMobile } from "react-device-detect";
-import { FaSearch, FaGlobe } from "react-icons/fa";
+import { FaSearch, FaGlobe, FaGripVertical, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FaXTwitter, FaGithub } from "react-icons/fa6";
 import placeholderLogo from "../assets/images/question_white.svg";
 import projectsData from "../data/projects.json";
+import AttractorBackground from "../components/AttractorBackground";
 
 // Blockchain logos - add these to assets
 import ethereumLogo from "../assets/images/weth.svg";
@@ -68,6 +70,59 @@ const Portfolio: React.FC = () => {
   const [investorProject, setInvestorProject] = useState<Project | null>(null);
   const [isInvestorModalOpen, setIsInvestorModalOpen] = useState(false);
   const gridSize = 4;
+
+  // Draggable filter panel state
+  const [filterPosition, setFilterPosition] = useState({ x: isMobile ? 16 : 120, y: 80 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - filterPosition.x,
+      y: e.clientY - filterPosition.y
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setFilterPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragStart({
+      x: touch.clientX - filterPosition.x,
+      y: touch.clientY - filterPosition.y
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      setFilterPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -149,6 +204,7 @@ const Portfolio: React.FC = () => {
 
   return (
     <Container maxW="100%" px={0} py={0} bg="#0a0a0a" minH="100vh" position="relative">
+      <AttractorBackground opacity={0.4} interactive={true} />
       <Box
         color="white"
         pt="40px"
@@ -156,80 +212,178 @@ const Portfolio: React.FC = () => {
         px={isMobile ? 4 : 8}
         maxW="1600px"
         mx="auto"
+        position="relative"
+        zIndex={1}
       >
-        {/* Search and Filters */}
-        <Box mb={8}>
-          <VStack gap={4} align="stretch">
-            <Box position="relative" maxW={isMobile ? "100%" : "500px"}>
-              <Box
-                position="absolute"
-                left="12px"
-                top="50%"
-                transform="translateY(-50%)"
-                pointerEvents="none"
-                color="#666"
-              >
-                <FaSearch />
+        {/* Header */}
+        <Box mb={8} textAlign="center">
+          <Heading size="xl" color="white" mb={2}>
+            Our Projects
+          </Heading>
+          <Text color="#888" fontSize="md">
+            Our activity spans multiple disciplines and industries at the forefront of technology
+          </Text>
+        </Box>
+
+        {/* Draggable Filter Panel */}
+        <Box
+          position="fixed"
+          left={`${filterPosition.x}px`}
+          top={`${filterPosition.y}px`}
+          zIndex={1001}
+          cursor={isDragging ? 'grabbing' : 'grab'}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          userSelect="none"
+          style={{ touchAction: 'none' }}
+        >
+          <VStack
+            gap={1}
+            bg="#1a1a1a"
+            border="1px solid #2a2a2a"
+            borderRadius="md"
+            p={2}
+            boxShadow="0 4px 12px rgba(0, 0, 0, 0.5)"
+            align="stretch"
+            minW={isFilterExpanded ? "120px" : "auto"}
+          >
+            {/* Header with drag handle and toggle */}
+            <HStack gap={2} justify="space-between" pb={isFilterExpanded ? 1 : 0} borderBottom={isFilterExpanded ? "1px solid #2a2a2a" : "none"}>
+              <Box>
+                <HStack gap={2}>
+                  <Box><FaGripVertical size={10} color="#555" /></Box>
+                  <Box><Text color="#888" fontSize="2xs" fontWeight="600">Filters</Text></Box>
+                </HStack>
               </Box>
-              <Input
-                placeholder="Search Projects"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                bg="#1a1a1a"
-                border="1px solid #2a2a2a"
-                color="white"
-                pl="40px"
-                _placeholder={{ color: "#666" }}
-                _hover={{ borderColor: "#3a3a3a" }}
-                _focus={{ borderColor: "#4ade80", boxShadow: "0 0 0 1px #4ade80" }}
-              />
-            </Box>
+              <Box
+                as="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFilterExpanded(!isFilterExpanded);
+                }}
+                cursor="pointer"
+                p={1}
+                borderRadius="sm"
+                transition="all 0.2s"
+                _hover={{ bg: "#2a2a2a" }}
+              >
+                {isFilterExpanded ? (
+                  <FaChevronUp size={10} color="#888" />
+                ) : (
+                  <FaChevronDown size={10} color="#888" />
+                )}
+              </Box>
+            </HStack>
 
-            <VStack align="stretch" gap={2}>
-              {/* Industry filters */}
-              <HStack gap={2} flexWrap="wrap">
-                <Box><Text fontSize="sm" color="#888" mr={2}>Industry:</Text></Box>
-                <Box>
-                {industries.map((industry) => (
-                  <Button
-                    key={industry}
-                    size="sm"
-                    onClick={() => setFilterIndustry(industry)}
-                    bg={filterIndustry === industry ? "#4ade80" : "transparent"}
-                    color={filterIndustry === industry ? "black" : "white"}
-                    border="1px solid"
-                    borderColor={filterIndustry === industry ? "#4ade80" : "#2a2a2a"}
-                    _hover={{
-                      bg: filterIndustry === industry ? "#22c55e" : "#1a1a1a",
-                    }}
+            {/* Collapsible Content */}
+            {isFilterExpanded && (
+              <>
+                {/* Search */}
+                <Box position="relative" mt={1}>
+                  <Box
+                    position="absolute"
+                    left="8px"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    pointerEvents="none"
+                    color="#555"
                   >
-                    {industry === "all" ? "All" : industry}
-                  </Button>
-                ))}                  
+                    <FaSearch size={10} />
+                  </Box>
+                  <Input
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setSearchQuery(e.target.value);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    bg="transparent"
+                    border="1px solid #2a2a2a"
+                    color="white"
+                    size="xs"
+                    pl="24px"
+                    fontSize="xs"
+                    h="24px"
+                    _placeholder={{ color: "#555" }}
+                    _hover={{ borderColor: "#3a3a3a" }}
+                    _focus={{ borderColor: "#4ade80", boxShadow: "none" }}
+                  />
                 </Box>
-              </HStack>
 
-              {/* Status filters */}
-              <HStack gap={2} flexWrap="wrap">
-                <Text fontSize="sm" color="#888" mr={2}>Status:</Text>
-                {statuses.map((status) => (
-                  <Button
-                    key={status}
-                    size="sm"
-                    onClick={() => setFilterStatus(status)}
-                    bg={filterStatus === status ? "#fbbf24" : "transparent"}
-                    color={filterStatus === status ? "black" : "white"}
-                    border="1px solid"
-                    borderColor={filterStatus === status ? "#fbbf24" : "#2a2a2a"}
-                    _hover={{
-                      bg: filterStatus === status ? "#f59e0b" : "#1a1a1a",
-                    }}
-                  >
-                    {status === "all" ? "All" : status}
-                  </Button>
-                ))}
-              </HStack>
-            </VStack>
+                {/* Industry Section */}
+                <Box mt={1}>
+                  <Text color="#666" fontSize="2xs" fontWeight="600" mb={1}>Industry</Text>
+                  <VStack gap={1} align="stretch">
+                    {industries.map((industry) => (
+                      <Box
+                        key={industry}
+                        as="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilterIndustry(industry);
+                        }}
+                        px={2}
+                        py={0.5}
+                        borderRadius="sm"
+                        fontSize="2xs"
+                        fontWeight="500"
+                        bg={filterIndustry === industry ? '#4ade80' : 'transparent'}
+                        color={filterIndustry === industry ? 'black' : '#888'}
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{
+                          bg: filterIndustry === industry ? '#22c55e' : '#2a2a2a',
+                          color: filterIndustry === industry ? 'black' : 'white'
+                        }}
+                        textAlign="left"
+                      >
+                        {industry === "all" ? "All" : industry}
+                      </Box>
+                    ))}
+                  </VStack>
+                </Box>
+
+                {/* Status Section */}
+                <Box mt={1} pt={1} borderTop="1px solid #2a2a2a">
+                  <Text color="#666" fontSize="2xs" fontWeight="600" mb={1}>Status</Text>
+                  <VStack gap={1} align="stretch">
+                    {statuses.map((status) => (
+                      <Box
+                        key={status}
+                        as="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilterStatus(status);
+                        }}
+                        px={2}
+                        py={0.5}
+                        borderRadius="sm"
+                        fontSize="2xs"
+                        fontWeight="500"
+                        bg={filterStatus === status ? '#fbbf24' : 'transparent'}
+                        color={filterStatus === status ? 'black' : '#888'}
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{
+                          bg: filterStatus === status ? '#f59e0b' : '#2a2a2a',
+                          color: filterStatus === status ? 'black' : 'white'
+                        }}
+                        textAlign="left"
+                      >
+                        {status === "all" ? "All" : status}
+                      </Box>
+                    ))}
+                  </VStack>
+                </Box>
+              </>
+            )}
           </VStack>
         </Box>
 
@@ -252,12 +406,13 @@ const Portfolio: React.FC = () => {
               return (
                 <Box
                   key={project.id}
-                  bg="#1a1a1a"
+                  bg="rgba(26, 26, 26, 0.5)"
                   border="1px solid #2a2a2a"
                   borderRadius="lg"
                   overflow="hidden"
                   cursor="pointer"
                   transition="all 0.2s"
+                  backdropFilter="blur(8px)"
                   onClick={() => handleProjectClick(project)}
                   _hover={{
                     borderColor: "#4ade80",
@@ -268,7 +423,7 @@ const Portfolio: React.FC = () => {
                   {/* Project Image */}
                   <Box
                     h="120px"
-                    bg="#0a0a0a"
+                    bg="rgba(10, 10, 10, 0.5)"
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -292,20 +447,22 @@ const Portfolio: React.FC = () => {
                       gap={1}
                       minW="80px"
                     >
-                      <Badge
-                        bg={statusInfo.bg}
-                        color={statusInfo.color}
-                        border="1px solid"
-                        borderColor={statusInfo.color}
-                        px={1.5}
-                        py={0.5}
-                        borderRadius="sm"
-                        fontSize="2xs"
-                        fontWeight="600"
-                        textAlign="center"
-                      >
-                        {statusInfo.label}
-                      </Badge>
+                      <Box>
+                        <Badge
+                          bg={statusInfo.bg}
+                          color={statusInfo.color}
+                          border="1px solid"
+                          borderColor={statusInfo.color}
+                          px={1.5}
+                          py={0.5}
+                          borderRadius="sm"
+                          fontSize="2xs"
+                          fontWeight="600"
+                          textAlign="center"
+                        >
+                          {statusInfo.label}
+                        </Badge>
+                      </Box>
                     </VStack>
                   </Box>
 
@@ -345,21 +502,22 @@ const Portfolio: React.FC = () => {
                       <Box mb={2}>
                         <HStack gap={1} mt={2}>
                           {project.blockchains.map((chain) => (
-                            <Image
-                              key={chain}
-                              src={blockchainLogos[chain]}
-                              alt={chain}
-                              w="16px"
-                              h="16px"
-                              title={chain}
-                            />
+                            <Box key={chain}>
+                              <Image
+                                src={blockchainLogos[chain]}
+                                alt={chain}
+                                w="16px"
+                                h="16px"
+                                title={chain}
+                              />
+                            </Box>
                           ))}
                         </HStack>
                       </Box>
                     )}
 
                     {/* Links and Badges */}
-                    <HStack gap={2} mt="auto" flexWrap="wrap" mt={2} >
+                    <HStack gap={2} mt="auto" flexWrap="wrap">
                       {project.website && (
                         <Box
                           as="a"
@@ -401,27 +559,28 @@ const Portfolio: React.FC = () => {
                         </Box>
                       )}
                       {project.investors && typeof project.investors === 'object' && project.investors.enabled && (
-                        <Badge
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            setInvestorProject(project);
-                            setIsInvestorModalOpen(true);
-                          }}
-                          bg="rgba(167, 139, 250, 0.1)"
-                          color="white"
-                          border="1px solid #a78bfa"
-                          px={2}
-                          py={0.5}
-                          borderRadius="sm"
-                          fontSize="2xs"
-                          fontWeight="600"
-                          cursor="pointer"
-                          _hover={{ bg: "rgba(167, 139, 250, 0.3)" }}
-                          transition="all 0.2s"
-                          ml="60%"
-                        >
-                          Investors
-                        </Badge>
+                        <Box ml="60%">
+                          <Badge
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              setInvestorProject(project);
+                              setIsInvestorModalOpen(true);
+                            }}
+                            bg="rgba(167, 139, 250, 0.1)"
+                            color="white"
+                            border="1px solid #a78bfa"
+                            px={2}
+                            py={0.5}
+                            borderRadius="sm"
+                            fontSize="2xs"
+                            fontWeight="600"
+                            cursor="pointer"
+                            _hover={{ bg: "rgba(167, 139, 250, 0.3)" }}
+                            transition="all 0.2s"
+                          >
+                            Investors
+                          </Badge>
+                        </Box>
                       )}
                     </HStack>
                   </Box>
@@ -434,48 +593,53 @@ const Portfolio: React.FC = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <HStack justify="center" mt={8} gap={2}>
-            <Button
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              bg="transparent"
-              color="white"
-              border="1px solid #2a2a2a"
-              _hover={{ bg: "#1a1a1a" }}
-              _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
-            >
-              Previous
-            </Button>
+            <Box>
+              <Button
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                bg="transparent"
+                color="white"
+                border="1px solid #2a2a2a"
+                _hover={{ bg: "#1a1a1a" }}
+                _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                Previous
+              </Button>
+            </Box>
 
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                size="sm"
-                onClick={() => handlePageChange(page)}
-                bg={currentPage === page ? "#4ade80" : "transparent"}
-                color={currentPage === page ? "black" : "white"}
-                border="1px solid"
-                borderColor={currentPage === page ? "#4ade80" : "#2a2a2a"}
-                _hover={{
-                  bg: currentPage === page ? "#22c55e" : "#1a1a1a",
-                }}
-              >
-                {page}
-              </Button>
+              <Box key={page}>
+                <Button
+                  size="sm"
+                  onClick={() => handlePageChange(page)}
+                  bg={currentPage === page ? "#4ade80" : "transparent"}
+                  color={currentPage === page ? "black" : "white"}
+                  border="1px solid"
+                  borderColor={currentPage === page ? "#4ade80" : "#2a2a2a"}
+                  _hover={{
+                    bg: currentPage === page ? "#22c55e" : "#1a1a1a",
+                  }}
+                >
+                  {page}
+                </Button>
+              </Box>
             ))}
 
-            <Button
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              bg="transparent"
-              color="white"
-              border="1px solid #2a2a2a"
-              _hover={{ bg: "#1a1a1a" }}
-              _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
-            >
-              Next
-            </Button>
+            <Box>
+              <Button
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                bg="transparent"
+                color="white"
+                border="1px solid #2a2a2a"
+                _hover={{ bg: "#1a1a1a" }}
+                _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                Next
+              </Button>
+            </Box>
           </HStack>
         )}
       </Box>
@@ -571,8 +735,8 @@ const Portfolio: React.FC = () => {
                         transition="all 0.2s"
                       >
                         <HStack gap={1}>
-                          <FaGlobe size={16} color="white" />
-                          <Text fontSize="sm">Website</Text>
+                          <Box><FaGlobe size={16} color="white" /></Box>
+                          <Box><Text fontSize="sm">Website</Text></Box>
                         </HStack>
                       </Box>
                     )}
@@ -587,8 +751,8 @@ const Portfolio: React.FC = () => {
                         transition="all 0.2s"
                       >
                         <HStack gap={1}>
-                          <FaXTwitter size={16} color="white" />
-                          <Text fontSize="sm">X</Text>
+                          <Box><FaXTwitter size={16} color="white" /></Box>
+                          <Box><Text fontSize="sm">X</Text></Box>
                         </HStack>
                       </Box>
                     )}
@@ -621,57 +785,71 @@ const Portfolio: React.FC = () => {
             {investorProject && typeof investorProject.investors === 'object' && (
               <VStack align="stretch" gap={4}>
                 {/* Project Name */}
-                <Text color="#a78bfa" fontSize="lg" fontWeight="600" textAlign="center">
-                  {investorProject.title}
-                </Text>
+                <Box>
+                  <Text color="#a78bfa" fontSize="lg" fontWeight="600" textAlign="center">
+                    {investorProject.title}
+                  </Text>
+                </Box>
 
                 {/* Investment Details */}
                 <Box bg="rgba(167, 139, 250, 0.1)" p={4} borderRadius="md" border="1px solid rgba(167, 139, 250, 0.3)">
                   <VStack align="stretch" gap={3}>
                     {investorProject.stage && (
-                      <HStack justify="space-between">
-                        <Text color="#888" fontSize="sm">Stage</Text>
-                        <Badge
-                          bg="rgba(56, 189, 248, 0.2)"
-                          color="#38bdf8"
-                          px={2}
-                          py={1}
-                          borderRadius="sm"
-                          fontSize="xs"
-                          fontWeight="600"
-                        >
-                          {investorProject.stage}
-                        </Badge>
-                      </HStack>
+                      <Box>
+                        <HStack justify="space-between">
+                          <Box><Text color="#888" fontSize="sm">Stage</Text></Box>
+                          <Box>
+                            <Badge
+                              bg="rgba(56, 189, 248, 0.2)"
+                              color="#38bdf8"
+                              px={2}
+                              py={1}
+                              borderRadius="sm"
+                              fontSize="xs"
+                              fontWeight="600"
+                            >
+                              {investorProject.stage}
+                            </Badge>
+                          </Box>
+                        </HStack>
+                      </Box>
                     )}
-                    <HStack justify="space-between">
-                      <Text color="#888" fontSize="sm">Agreement Type</Text>
-                      <Badge
-                        bg="rgba(167, 139, 250, 0.2)"
-                        color="white"
-                        px={2}
-                        py={1}
-                        borderRadius="sm"
-                        fontSize="xs"
-                        fontWeight="600"
-                      >
-                        {investorProject.investors.type}
-                      </Badge>
-                    </HStack>
-                    <HStack justify="space-between">
-                      <Text color="#888" fontSize="sm">Arrangement</Text>
-                      <Badge
-                        bg="rgba(74, 222, 128, 0.2)"
-                        color="#4ade80"
-                        px={2}
-                        py={1}
-                        borderRadius="sm"
-                        fontSize="xs"
-                        fontWeight="600"
-                      >
-                        {investorProject.investors.arrangement}
-                      </Badge>
-                    </HStack>
+                    <Box>
+                      <HStack justify="space-between">
+                        <Box><Text color="#888" fontSize="sm">Agreement Type</Text></Box>
+                        <Box>
+                          <Badge
+                            bg="rgba(167, 139, 250, 0.2)"
+                            color="white"
+                            px={2}
+                            py={1}
+                            borderRadius="sm"
+                            fontSize="xs"
+                            fontWeight="600"
+                          >
+                            {investorProject.investors.type}
+                          </Badge>
+                        </Box>
+                      </HStack>
+                    </Box>
+                    <Box>
+                      <HStack justify="space-between">
+                        <Box><Text color="#888" fontSize="sm">Arrangement</Text></Box>
+                        <Box>
+                          <Badge
+                            bg="rgba(74, 222, 128, 0.2)"
+                            color="#4ade80"
+                            px={2}
+                            py={1}
+                            borderRadius="sm"
+                            fontSize="xs"
+                            fontWeight="600"
+                          >
+                            {investorProject.investors.arrangement}
+                          </Badge>
+                        </Box>
+                      </HStack>
+                    </Box>
                   </VStack>
                 </Box>
 
@@ -684,15 +862,32 @@ const Portfolio: React.FC = () => {
                 </Box>
 
                 {/* Contact Button */}
-                <Button
-                  bg="#a78bfa"
-                  color="white"
-                  _hover={{ bg: "#8b5cf6" }}
-                  size="sm"
-                  mt={2}
-                >
-                  Contact for Details
-                </Button>
+                <Box>
+                  <HStack gap={2} display="flex" paddingLeft="10%">
+                    <Box  >
+                    <Button
+                      bg="#a78bfa"
+                      color="white"
+                      _hover={{ bg: "#8b5cf6" }}
+                      size="sm"
+                      mt={2}
+                    >
+                      <Link  href="mailto:info@noma.money" target='_blank' >Contact for Details</Link>
+                    </Button>                      
+                      </Box>
+                      <Box>
+                    <Button
+                      bg="#b78bfa" 
+                      color="white"
+                      _hover={{ bg: "#8b5cf6" }}
+                      size="sm"
+                      mt={2}
+                    >
+                      <Link  href="https://deck.noma.money" target='_blank' >Pitch-deck</Link>
+                    </Button>                      
+                    </Box>
+                  </HStack>
+                </Box>
               </VStack>
             )}
           </DialogBody>

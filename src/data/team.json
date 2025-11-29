@@ -1,7 +1,7 @@
 [
   {
     "id": "1",
-    "name": "Int3rn",
+    "name": "Guillermo",
     "role": "Founder & CEO",
     "bio": "Blockchain & Tech Enthusiast. Entrepreneur at heart and decentralization janitor.",
     "avatar": "intern",
@@ -9,18 +9,17 @@
   },
   {
     "id": "2",
-    "name": "Luishy Artiles",
-    "role": "COO",
+    "name": "Luishy",
+    "role": "CTO",
     "avatar": "luishy",
     "bio": "Analytic mind with problem solving skills and ability to manage even the most disparate teams."
   },
   {
     "id": "3",
-    "name": "Manuel Alvarez",
+    "name": "Manuel",
     "role": "CTO",
     "avatar": "manuel",
-    "bio": "Background in Finance and Economics, interested in cryptocurrency and its ethos. In for the long-run.",
-    "twitter": "https://x.com/@MSlvarez6688"
+    "bio": "Background in Finance and Economics, interested in cryptocurrency and its ethos. In for the long-run."
   },
   {
     "id": "4",
