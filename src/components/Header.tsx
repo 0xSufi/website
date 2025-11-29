@@ -88,10 +88,10 @@ const Header: React.FC = () => {
         <Box>
           <HStack justify="space-between" w="100%">
             {/* Logo */}
-            <Link href="https://noma.money">
+            <Link href="https://flabs.cc">
               <Image
                 src={Logo}
-                alt="Noma Protocol"
+                alt="Fundamental Labs - Young tech accellerator in the Carribean/LATAM"
                 w={isMobile ? "40px" : "60px"}
                 h={isMobile ? "40px" : "40px"}
               />

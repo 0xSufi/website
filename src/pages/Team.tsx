@@ -13,12 +13,13 @@ import { isMobile } from "react-device-detect";
 import { FaXTwitter, FaLinkedin, FaGithub, FaEnvelope } from "react-icons/fa6";
 import placeholderAvatar from "../assets/images/question_white.svg";
 import teamData from "../data/team.json";
+import AttractorBackground from "../components/AttractorBackground";
 
 // Import team avatars
 import internAvatar from "../assets/images/intern.jpeg";
 import luishyAvatar from "../assets/images/luishy.jpeg";
 import manuelAvatar from "../assets/images/manuel.jpeg";
-import sufiAvatar from "../assets/images/sufi.jpg";
+import sufiAvatar from "../assets/images/sufi.png";
 
 // Map avatar names to imported images
 const avatarMap: Record<string, string> = {
@@ -51,6 +52,7 @@ const teamMembers: TeamMember[] = teamData;
 const Team: React.FC = () => {
   return (
     <Container maxW="100%" px={0} py={0} bg="#0a0a0a" minH="100vh" position="relative">
+      <AttractorBackground opacity={0.4} interactive={true} />
       <Box
         color="white"
         pt="40px"
@@ -58,6 +60,8 @@ const Team: React.FC = () => {
         px={isMobile ? 4 : 8}
         maxW="1200px"
         mx="auto"
+        position="relative"
+        zIndex={1}
       >
         {/* Header */}
         <Box mb={8} textAlign="center">
@@ -77,11 +81,12 @@ const Team: React.FC = () => {
           {teamMembers.map((member) => (
             <Box
               key={member.id}
-              bg="#1a1a1a"
+              bg="rgba(26, 26, 26, 0.5)"
               border="1px solid #2a2a2a"
               borderRadius="lg"
               overflow="hidden"
               transition="all 0.2s"
+              backdropFilter="blur(8px)"
               _hover={{
                 borderColor: "#4ade80",
                 transform: "translateY(-2px)",
@@ -91,7 +96,7 @@ const Team: React.FC = () => {
               {/* Profile Picture */}
               <Box
                 h="220px"
-                bg="#0a0a0a"
+                bg="rgba(10, 10, 10, 0.5)"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"

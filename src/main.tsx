@@ -7,6 +7,7 @@ import App from "./App";
 import Portfolio from "./pages/Portfolio";
 import Splash from "./pages/Splash";
 import Team from "./pages/Team";
+import Swap from "./pages/Swap";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: "team",
         element: <Team />,
+      },
+      {
+        path: "swap",
+        element: <Swap />,
       },
     ],
   },
